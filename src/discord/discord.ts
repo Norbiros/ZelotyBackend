@@ -22,7 +22,7 @@ export default class Discord {
             },
             {
                 name: 'auth',
-                description: 'Niech żyje Zeloatygia!',
+                description: 'Połącz swoje konto na Discord, z kontem MC!',
             },
         ];
 
@@ -67,9 +67,9 @@ export default class Discord {
                 const authEmbed = new EmbedBuilder()
                     .setColor(0x026839)
                     .setTitle('Autoryzacjia')
-                    .setDescription(`${await AuthUtils.createDiscordCode(interaction.user.id)}`)
+                    .setDescription("Twój kod: `" + await AuthUtils.createDiscordCode(interaction.user.id) +"`")
                     .setFooter({ text: 'Niech żyje Zelotygia!', iconURL: 'https://cdn.discordapp.com/icons/938422856805646346/aab8fde84319f7ad81fd4fd53d4b7367.webp' });
-                await interaction.reply({embeds: [authEmbed]})
+                await interaction.reply({embeds: [authEmbed], ephemeral: true })
             }
         });
         await this.client.login(token);
