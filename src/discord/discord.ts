@@ -1,5 +1,10 @@
-import {Client, EmbedBuilder, GatewayIntentBits, REST, Routes} from 'discord.js';
-import {AuthUtils} from "../utils/auth-utils";
+import {ActivityType, Client, GatewayIntentBits, REST, Routes} from 'discord.js';
+
+import ZelotygiaCommand from "./commands/ZelotygiaCommand";
+import AuthCommand from "./commands/AuthCommand";
+import InfoCommand from "./commands/InfoCommand";
+import Command from "./commands/Command";
+import CalendarCommand from "./commands/CalendarCommand";
 
 export default class Discord {
     client: Client;
@@ -10,66 +15,45 @@ export default class Discord {
     }
 
     async init(token: string) {
-
-        const commands = [
-            {
-                name: 'info',
-                description: 'Informacje o ZelotyBOT',
-            },
-            {
-                name: 'zelotygia',
-                description: 'Niech żyje Zelotygia!',
-            },
-            {
-                name: 'auth',
-                description: 'Połącz swoje konto na Discord, z kontem MC!',
-            },
-        ];
-
-        const rest = new REST({ version: '10' }).setToken(token);
-
-        try {
-            console.log('Started refreshing application (/) commands.');
-
-            await rest.put(Routes.applicationCommands("1133333135149498441"), { body: commands });
-
-            console.log('Successfully reloaded application (/) commands.');
-        } catch (error) {
-            console.error(error);
+        const commands: { [key: string]: Command } = {
+            'info': new InfoCommand(),
+            'auth': new AuthCommand(),
+            'zelotygia': new ZelotygiaCommand(),
+            'kalendarz': new CalendarCommand(),
+        }
+        const commandsList = [];
+        for (const [key, value] of Object.entries(commands)) {
+            commandsList.push({name: key, description: value.description});
         }
 
-        this.client = new Client({ intents: [GatewayIntentBits.Guilds] });
+        const rest = new REST({version: '10'}).setToken(token);
+        try {
+            await rest.put(Routes.applicationCommands("1133333135149498441"), {body: commandsList});
+            console.log("Successfully registered application commands.")
+        } catch (error) {
+            console.error("Error while registering commands", error);
+        }
+
+        this.client = new Client({intents: [GatewayIntentBits.Guilds]});
         this.client.on("ready", () => {
             console.log(`Logged in as ${this.client.user?.tag}!`);
+            this.client.user?.setStatus('online');
+            this.client.user?.setActivity(`Zelotygia`, {type: ActivityType.Playing});
         });
-        const exampleEmbed = new EmbedBuilder()
-            .setColor(0x026839)
-            .setTitle('ZelotyBOT')
-            .setDescription('@Norbiros postanowił napisać Moda do Minecraft (Fabric) oraz bota na DC. Aby Zelotygia była jeszcze bardziej **ARCY  POTĘŻNA**!')
-            .addFields(
-                { name: 'Mod', value: 'Mod będzie zawierał wiele funkcji jak głosowanie na ustawy. Łączony chat z discordem. Autoryzacja, i wiel innych!' },
-                { name: 'Bot', value: 'Bot będzie przypominał o wydarzeniach, pozwalał łatwiej zarządzać serwerem DC, oraz pozwalał łączyć konta!' }
-            )
-            .setFooter({ text: 'Niech żyje Zelotygia!', iconURL: 'https://cdn.discordapp.com/icons/938422856805646346/aab8fde84319f7ad81fd4fd53d4b7367.webp' });
-
-        const zEmbed = new EmbedBuilder()
-            .setColor(0x026839)
-            .setAuthor({ name: 'Niech żyje Zelotygia!', iconURL: 'https://cdn.discordapp.com/icons/938422856805646346/aab8fde84319f7ad81fd4fd53d4b7367.webp' })
 
         this.client.on('interactionCreate', async interaction => {
             if (!interaction.isChatInputCommand()) return;
-
-            if (interaction.commandName === 'info') {
-                await interaction.reply({embeds: [exampleEmbed]});
-            } else if (interaction.commandName == 'zelotygia') {
-                await interaction.reply({embeds: [zEmbed]})
-            } else if (interaction.commandName == 'auth') {
-                const authEmbed = new EmbedBuilder()
-                    .setColor(0x026839)
-                    .setTitle('Autoryzacjia')
-                    .setDescription("Twój kod: `" + await AuthUtils.createDiscordCode(interaction.user.id) +"`")
-                    .setFooter({ text: 'Niech żyje Zelotygia!', iconURL: 'https://cdn.discordapp.com/icons/938422856805646346/aab8fde84319f7ad81fd4fd53d4b7367.webp' });
-                await interaction.reply({embeds: [authEmbed], ephemeral: true })
+            if (commands[interaction.commandName]) {
+                const command = commands[interaction.commandName];
+                const embed = await command.execute(interaction);
+                if (command.style) {
+                    embed.setColor(0x026839);
+                    embed.setFooter({
+                        text: 'Niech żyje Zelotygia!',
+                        iconURL: 'https://cdn.discordapp.com/icons/938422856805646346/aab8fde84319f7ad81fd4fd53d4b7367.webp'
+                    });
+                }
+                await interaction.reply({embeds: [embed], ephemeral: command.ephemeral});
             }
         });
         await this.client.login(token);
