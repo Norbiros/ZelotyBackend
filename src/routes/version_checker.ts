@@ -22,7 +22,7 @@ router.get("/version", async (req: Request, res: Response) => {
     new CustomResponse({
         statusCode: 200,
         responseObject: {
-            version: "0.2.0",
+            version: "0.2.1",
         }
     }).sendResponse(res);
 });
