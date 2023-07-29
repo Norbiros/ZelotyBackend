@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import {ErrorResponse} from "../models/responses/error-response";
 import {AuthUtils} from "../utils/auth-utils";
 import prisma from "../prisma";
-import {randomBytes} from "crypto";
+import {randomBytes, createHash} from "crypto";
 import {CustomResponse} from "../models/responses/response";
 
 const router = express();
@@ -19,11 +19,14 @@ router.post("/register", async (req: Request, res: Response) => {
         if (pin  === req.body.code) {
             delete AuthUtils.map[discordId];
             const token  = randomBytes(16).toString("hex");
+            const hashedToken = createHash("sha256")
+                .update(token)
+                .digest("hex");
             try {
                 await prisma.users.create({
                     data: {
                         discord: discordId,
-                        token,
+                        token: hashedToken,
                         minecraft: req.body.uuid,
                     }
                 })
