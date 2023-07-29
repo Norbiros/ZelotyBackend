@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import prisma from "../prisma";
 
 export class AuthUtils {
     static map: { [discordId: string]: string } = { };
@@ -8,5 +9,13 @@ export class AuthUtils {
         const pin = pinNumber.toString().padStart(6, '0');
         AuthUtils.map[discordId] =  pin;
         return pin;
+    }
+
+    public static async isConnected(discordId: string): Promise<boolean> {
+        return !!prisma.users.findFirst({
+            where: {
+                discord: discordId,
+            }
+        });
     }
 }

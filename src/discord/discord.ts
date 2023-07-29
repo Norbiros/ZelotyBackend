@@ -57,5 +57,18 @@ export default class Discord {
             }
         });
         await this.client.login(token);
+
+        setInterval(this.sendCalendar, 1000 * 60 * 60);
+        await this.sendCalendar();
+    }
+    private async sendCalendar() {
+        const now = new Date();
+        if (now.getHours() === 0) {
+            await this.client.guilds.cache.get("938422856805646346")?.channels.fetch("1134029781281800253");
+            const channel = this.client.channels.cache.get("1134029781281800253");
+            if (channel && channel.isTextBased()) {
+                channel.send({embeds: [await (new CalendarCommand()).execute()]});
+            }
+        }
     }
 }

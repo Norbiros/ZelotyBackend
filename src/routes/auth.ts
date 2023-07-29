@@ -8,7 +8,6 @@ import {CustomResponse} from "../models/responses/response";
 const router = express();
 
 router.post("/register", async (req: Request, res: Response) => {
-    console.log(req.body);
     if (!req.body.code || !req.body.uuid) {
         return new ErrorResponse({
             error: "MISSING_PARAMETERS",
