@@ -2,11 +2,11 @@ name: CI/CD
 
 on:
   push:
-  pull_request:
-
+    branches: [ master ]
+  
 jobs:
   test:
-    name: Build and Test
+    name: Test and Publish to VPS
     runs-on: ubuntu-latest
 
     steps:
@@ -26,3 +26,19 @@ jobs:
 
       - name: Check with ESlint
         run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy using ssh
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: 22
+        script: |
+          cd /home/${{ secrets.USERNAME }}/apps/zelotybackend
+          git pull origin master
+          git status
+          npm install
