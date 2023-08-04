@@ -42,6 +42,5 @@ jobs:
           cd /home/${{ secrets.USERNAME }}/apps/zelotybackend
           git pull origin master
           git status
-          nvm use 20
           npm install
           pm2 restart zelotybackend
