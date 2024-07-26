@@ -1,0 +1,16 @@
+const config = {
+    trailingComma: 'es5',
+    tabWidth: 4,
+    semi: false,
+    singleQuote: true,
+    overrides: [
+        {
+            files: ['*.yaml', '*.yml', '*.json'],
+            options: {
+                tabWidth: 2,
+            },
+        },
+    ],
+}
+
+export default config
